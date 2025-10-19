@@ -55,7 +55,7 @@ const QueueManagement = () => {
         </div>
         <div className="flex flex-col flex-1 p-4 gap-4">
           <div className="flex flex-col gap-2">
-            <Link className="flex items-center gap-3 px-3 py-2 text-[#111618] dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" to="/hospital-dashboard">
+            <Link className="flex items-center gap-3 px-3 py-2 text-[#111618] dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" to="/hospital">
               <span className="material-symbols-outlined">dashboard</span>
               <span className="text-sm font-medium">Dashboard</span>
             </Link>

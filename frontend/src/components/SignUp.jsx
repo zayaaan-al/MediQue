@@ -1,11 +1,22 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from './shared/ToastManager'
 
 const SignUp = () => {
-  const [userType, setUserType] = useState('patient') // 'patient' or 'hospital'
+  const [searchParams] = useSearchParams()
+  const typeFromUrl = searchParams.get('type') // Get type from URL query parameter
+  const [userType, setUserType] = useState(typeFromUrl === 'hospital' ? 'hospital' : 'patient') // 'patient' or 'hospital'
   const toast = useToast()
   const navigate = useNavigate()
+
+  // Update userType when URL parameter changes
+  useEffect(() => {
+    if (typeFromUrl === 'hospital') {
+      setUserType('hospital')
+    } else if (typeFromUrl === 'patient') {
+      setUserType('patient')
+    }
+  }, [typeFromUrl])
   const [patientData, setPatientData] = useState({
     firstName: '',
     lastName: '',
@@ -229,33 +240,35 @@ const SignUp = () => {
             </p>
           </div>
 
-          {/* User Type Toggle */}
-          <div className="mb-8">
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-              <button
-                onClick={() => setUserType('patient')}
-                className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
-                  userType === 'patient'
-                    ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                }`}
-              >
-                <span className="material-symbols-outlined mr-2">person</span>
-                Patient Registration
-              </button>
-              <button
-                onClick={() => setUserType('hospital')}
-                className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
-                  userType === 'hospital'
-                    ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                }`}
-              >
-                <span className="material-symbols-outlined mr-2">local_hospital</span>
-                Hospital Registration
-              </button>
+          {/* User Type Toggle - Only show if no type specified in URL */}
+          {!typeFromUrl && (
+            <div className="mb-8">
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                <button
+                  onClick={() => setUserType('patient')}
+                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+                    userType === 'patient'
+                      ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined mr-2">person</span>
+                  Patient Registration
+                </button>
+                <button
+                  onClick={() => setUserType('hospital')}
+                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+                    userType === 'hospital'
+                      ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined mr-2">local_hospital</span>
+                  Hospital Registration
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
             {userType === 'patient' ? (

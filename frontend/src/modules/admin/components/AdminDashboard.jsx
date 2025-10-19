@@ -8,6 +8,16 @@ const AdminDashboard = () => {
   const toast = useToast()
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [currentAdmin, setCurrentAdmin] = useState(null)
+  const [hospitals, setHospitals] = useState([])
+  const [doctors, setDoctors] = useState([])
+  const [patients, setPatients] = useState([])
+  const [stats, setStats] = useState({
+    totalHospitals: 0,
+    approvedHospitals: 0,
+    pendingHospitals: 0,
+    totalDoctors: 0,
+    totalPatients: 0
+  })
 
   useEffect(() => {
     // Check admin authentication
@@ -20,50 +30,83 @@ const AdminDashboard = () => {
     }
     setCurrentAdmin(admin)
 
-    // Load pending hospital approvals count
+    // Load all data from localStorage
     const registeredHospitals = JSON.parse(localStorage.getItem('registeredHospitals') || '[]')
-    const pending = registeredHospitals.filter(hospital => hospital.status === 'pending').length
+    const registeredDoctors = JSON.parse(localStorage.getItem('hospitalDoctors') || '[]')
+    const registeredPatients = JSON.parse(localStorage.getItem('registeredPatients') || '[]')
+
+    setHospitals(registeredHospitals)
+    setDoctors(registeredDoctors)
+    setPatients(registeredPatients)
+
+    // Calculate statistics
+    const pending = registeredHospitals.filter(h => h.status === 'pending').length
+    const approved = registeredHospitals.filter(h => h.status === 'approved').length
+    
     setPendingApprovals(pending)
+    setStats({
+      totalHospitals: registeredHospitals.length,
+      approvedHospitals: approved,
+      pendingHospitals: pending,
+      totalDoctors: registeredDoctors.length,
+      totalPatients: registeredPatients.length
+    })
   }, [])
 
-  const stats = [
-    { title: 'Total Patients', value: '1,234', change: '+2.5%', positive: true },
-    { title: 'Total Doctors', value: '56', change: '+1.2%', positive: true },
-    { title: 'Total Hospitals', value: '25', change: '+3', positive: true },
-    { title: 'Average Wait Time', value: '15 min', change: '+3%', positive: true }
-  ]
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'appointment',
-      icon: 'calendar_add_on',
-      message: 'New appointment scheduled for Jane Doe with Dr. Smith.',
-      time: '5 min ago'
-    },
-    {
-      id: 2,
-      type: 'patient',
-      icon: 'person_add',
-      message: 'New patient John Doe registered.',
-      time: '1 hour ago'
-    },
-    {
-      id: 3,
-      type: 'warning',
-      icon: 'warning',
-      message: 'Cardiology department is at 95% capacity.',
-      time: '2 hours ago',
-      isWarning: true
-    },
-    {
-      id: 4,
-      type: 'schedule',
-      icon: 'edit_calendar',
-      message: "Dr. Emily White's schedule has been updated.",
-      time: 'Yesterday'
-    }
-  ]
+  // Get recent activities from actual data
+  const getRecentActivities = () => {
+    const activities = []
+    
+    // Recent patients
+    const recentPatients = [...patients]
+      .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt))
+      .slice(0, 2)
+    
+    recentPatients.forEach(patient => {
+      activities.push({
+        id: `patient-${patient.id}`,
+        type: 'patient',
+        icon: 'person_add',
+        message: `New patient ${patient.name} registered.`,
+        time: getTimeAgo(patient.registeredAt)
+      })
+    })
+
+    // Recent hospitals
+    const recentHospitals = [...hospitals]
+      .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt))
+      .slice(0, 2)
+    
+    recentHospitals.forEach(hospital => {
+      activities.push({
+        id: `hospital-${hospital.id}`,
+        type: 'hospital',
+        icon: 'local_hospital',
+        message: `Hospital ${hospital.hospitalName} ${hospital.status === 'approved' ? 'approved' : 'registered'}.`,
+        time: getTimeAgo(hospital.registeredAt)
+      })
+    })
+
+    return activities.slice(0, 5)
+  }
+
+  const getTimeAgo = (dateString) => {
+    const now = new Date()
+    const past = new Date(dateString)
+    const diffMs = now - past
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays === 1) return 'Yesterday'
+    return `${diffDays}d ago`
+  }
+
+  const recentActivities = getRecentActivities()
 
   // Don't render anything if admin is not authenticated
   if (!currentAdmin) {
@@ -146,26 +189,31 @@ const AdminDashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-4">
             <div className="flex flex-col gap-2 rounded-lg p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50">
               <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Total Hospitals</p>
-              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">25</p>
-              <p className="text-[#078836] text-base font-medium leading-normal">+3 this month</p>
+              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">{stats.totalHospitals}</p>
+              <p className="text-[#617c89] dark:text-gray-400 text-sm font-medium leading-normal">Registered</p>
             </div>
             <div className="flex flex-col gap-2 rounded-lg p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50">
-              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Pending Applications</p>
-              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">8</p>
-              <p className="text-[#078836] text-base font-medium leading-normal">Needs review</p>
+              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Approved Hospitals</p>
+              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">{stats.approvedHospitals}</p>
+              <p className="text-[#078836] text-sm font-medium leading-normal">Active</p>
             </div>
             <div className="flex flex-col gap-2 rounded-lg p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50">
-              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Active Hospitals</p>
-              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">23</p>
-              <p className="text-[#078836] text-base font-medium leading-normal">92% active rate</p>
+              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Pending Approvals</p>
+              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">{stats.pendingHospitals}</p>
+              <p className="text-[#f59e0b] text-sm font-medium leading-normal">Needs review</p>
             </div>
             <div className="flex flex-col gap-2 rounded-lg p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50">
-              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">This Month</p>
-              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">12</p>
-              <p className="text-[#078836] text-base font-medium leading-normal">New registrations</p>
+              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Total Doctors</p>
+              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">{stats.totalDoctors}</p>
+              <p className="text-[#617c89] dark:text-gray-400 text-sm font-medium leading-normal">In system</p>
+            </div>
+            <div className="flex flex-col gap-2 rounded-lg p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50">
+              <p className="text-[#111618] dark:text-white text-base font-medium leading-normal">Total Patients</p>
+              <p className="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">{stats.totalPatients}</p>
+              <p className="text-[#617c89] dark:text-gray-400 text-sm font-medium leading-normal">Registered</p>
             </div>
           </div>
 
@@ -212,7 +260,7 @@ const AdminDashboard = () => {
                     <circle cx="18" cy="18" fill="transparent" r="15.91549430918954" stroke="#f87171" strokeDasharray="25 75" strokeDashoffset="40" strokeWidth="4"></circle>
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold text-[#111618] dark:text-white">2,847</span>
+                    <span className="text-2xl font-bold text-[#111618] dark:text-white">{stats.totalPatients + stats.totalDoctors + stats.totalHospitals}</span>
                     <span className="text-sm text-[#617c89] dark:text-gray-400">Total Users</span>
                   </div>
                 </div>
@@ -239,7 +287,7 @@ const AdminDashboard = () => {
             <div className="rounded-lg border border-[#dbe2e6] dark:border-gray-700 p-6 bg-white dark:bg-background-dark/50">
               <h3 className="text-[#111618] dark:text-white text-lg font-bold leading-tight mb-4">System Activities</h3>
               <div className="flex flex-col gap-4">
-                {recentActivities.map((activity) => (
+                {recentActivities.length > 0 ? recentActivities.map((activity) => (
                   <div key={activity.id} className="flex items-center gap-4">
                     <div className={`p-2 rounded-full ${activity.isWarning ? 'bg-red-500/20' : 'bg-primary/20'}`}>
                       <span className={`material-symbols-outlined ${activity.isWarning ? 'text-red-500' : 'text-primary'}`}>
@@ -247,16 +295,160 @@ const AdminDashboard = () => {
                       </span>
                     </div>
                     <p className="text-sm text-[#111618] dark:text-white flex-1">
-                      {activity.message.split(' ').map((word, index) => {
-                        if (word.includes('Jane') || word.includes('John') || word.includes('Dr.') || word.includes('95%') || word.includes('Emily')) {
-                          return <span key={index} className={`font-semibold ${activity.isWarning && word.includes('95%') ? 'text-red-500' : 'text-[#343a40] dark:text-white'}`}>{word} </span>
-                        }
-                        return word + ' '
-                      })}
+                      {activity.message}
                     </p>
                     <p className="text-xs text-[#617c89] dark:text-gray-400">{activity.time}</p>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-sm text-[#617c89] dark:text-gray-400 text-center py-4">No recent activities</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Data Tables */}
+          <div className="p-4 space-y-6">
+            {/* Hospitals Table */}
+            <div className="rounded-lg border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50 overflow-hidden">
+              <div className="p-6 border-b border-[#dbe2e6] dark:border-gray-700">
+                <h3 className="text-[#111618] dark:text-white text-lg font-bold leading-tight">Registered Hospitals</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hospital Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">City</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Registered</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {hospitals.length > 0 ? hospitals.map((hospital) => (
+                      <tr key={hospital.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {hospital.hospitalPhoto ? (
+                              <img src={hospital.hospitalPhoto} alt={hospital.hospitalName} className="w-8 h-8 rounded-full mr-3" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                <span className="material-symbols-outlined text-primary text-sm">local_hospital</span>
+                              </div>
+                            )}
+                            <span className="text-sm font-medium text-[#111618] dark:text-white">{hospital.hospitalName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{hospital.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{hospital.city}, {hospital.state}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            hospital.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' :
+                            hospital.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' :
+                            'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
+                          }`}>
+                            {hospital.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">
+                          {new Date(hospital.registeredAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center text-sm text-[#617c89] dark:text-gray-400">
+                          No hospitals registered yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Doctors Table */}
+            <div className="rounded-lg border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50 overflow-hidden">
+              <div className="p-6 border-b border-[#dbe2e6] dark:border-gray-700">
+                <h3 className="text-[#111618] dark:text-white text-lg font-bold leading-tight">Registered Doctors</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Doctor Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Specialization</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hospital</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Experience</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fee</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {doctors.length > 0 ? doctors.map((doctor) => (
+                      <tr key={doctor.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <img src={doctor.avatar} alt={doctor.name} className="w-8 h-8 rounded-full mr-3" />
+                            <span className="text-sm font-medium text-[#111618] dark:text-white">{doctor.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{doctor.specialization}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{doctor.hospital}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{doctor.experience} years</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">${doctor.consultationFee}</td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center text-sm text-[#617c89] dark:text-gray-400">
+                          No doctors registered yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Patients Table */}
+            <div className="rounded-lg border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark/50 overflow-hidden">
+              <div className="p-6 border-b border-[#dbe2e6] dark:border-gray-700">
+                <h3 className="text-[#111618] dark:text-white text-lg font-bold leading-tight">Registered Patients</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Patient Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Patient ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Registered</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {patients.length > 0 ? patients.map((patient) => (
+                      <tr key={patient.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <img src={patient.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80'} alt={patient.name} className="w-8 h-8 rounded-full mr-3" />
+                            <span className="text-sm font-medium text-[#111618] dark:text-white">{patient.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{patient.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{patient.phone}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">{patient.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#617c89] dark:text-gray-400">
+                          {new Date(patient.registeredAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center text-sm text-[#617c89] dark:text-gray-400">
+                          No patients registered yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

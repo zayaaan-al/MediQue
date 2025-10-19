@@ -88,7 +88,9 @@ const PatientProfile = () => {
     }
   }
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = (e) => {
+    if (e) e.preventDefault() // Prevent any form submission
+    
     const requiredFields = ['firstName', 'lastName', 'email', 'phone']
     const missingFields = requiredFields.filter(field => !profileData[field])
     
@@ -124,9 +126,12 @@ const PatientProfile = () => {
     )
     localStorage.setItem('registeredPatients', JSON.stringify(updatedPatients))
 
+    // Update state and exit edit mode
     setCurrentPatient(updatedPatient)
     setIsEditing(false)
-    toast.showSuccess('Profile updated successfully!')
+    
+    // Show success message
+    toast.showSuccess('Save changes done!')
   }
 
   const handleChangePassword = () => {

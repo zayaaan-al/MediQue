@@ -132,11 +132,11 @@ const LandingPage = () => {
                         </>
                       ) : (
                         <>
-                          <Link to="/login" className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-8 @[480px]:h-14 @[480px]:px-10 bg-white text-primary text-base font-bold leading-normal tracking-[0.015em] @[480px]:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                          <Link to="/patient-portal" className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-8 @[480px]:h-14 @[480px]:px-10 bg-white text-primary text-base font-bold leading-normal tracking-[0.015em] @[480px]:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
                             <span className="material-symbols-outlined mr-2">person</span>
                             <span className="truncate">Patient Portal</span>
                           </Link>
-                          <Link to="/hospital-auth" className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-8 @[480px]:h-14 @[480px]:px-10 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white text-base font-bold leading-normal tracking-[0.015em] @[480px]:text-lg hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                          <Link to="/hospital-portal" className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-8 @[480px]:h-14 @[480px]:px-10 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white text-base font-bold leading-normal tracking-[0.015em] @[480px]:text-lg hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
                             <span className="material-symbols-outlined mr-2">local_hospital</span>
                             <span className="truncate">Hospital Portal</span>
                           </Link>

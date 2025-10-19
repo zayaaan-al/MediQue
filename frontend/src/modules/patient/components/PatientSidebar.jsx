@@ -14,7 +14,8 @@ const PatientSidebar = () => {
   const menuItems = [
     { path: '/', icon: 'home', label: 'Home' },
     { path: '/patient', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/patient/appointments', icon: 'calendar_add_on', label: 'Make New Appointment' },
+    { path: '/patient/appointments', icon: 'calendar_add_on', label: 'Book Appointment' },
+    { path: '/patient/appointment-status', icon: 'event_available', label: 'Appointment Status' },
     { path: '/patient/find-doctors', icon: 'search', label: 'Find Doctors' },
     { path: '/patient/queue-status', icon: 'groups', label: 'Queue Status' },
     { path: '/patient/medical-records', icon: 'folder_open', label: 'Medical Records' },

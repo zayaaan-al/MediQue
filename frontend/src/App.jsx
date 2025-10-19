@@ -1,9 +1,10 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
-import PatientLogin from './components/PatientLogin'
-import HospitalAuth from './components/HospitalAuth'
+import Login from './components/Login'
 import SignUp from './components/SignUp'
+import PatientPortal from './components/PatientPortal'
+import HospitalPortal from './components/HospitalPortal'
 import PaymentPage from './components/PaymentPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 import { ToastProvider } from './components/shared/ToastManager'
@@ -12,6 +13,8 @@ import { ToastProvider } from './components/shared/ToastManager'
 import AdminDashboard from './modules/admin/components/AdminDashboard'
 import HospitalManagement from './modules/admin/components/HospitalManagement'
 import HospitalApprovals from './modules/admin/components/HospitalApprovals'
+import DoctorManagement from './modules/admin/components/DoctorManagement'
+import PatientManagement from './modules/admin/components/PatientManagement'
 
 // Hospital Module
 import HospitalDashboard from './modules/hospital/components/HospitalDashboard'
@@ -23,6 +26,7 @@ import QueueManagement from './components/QueueManagement'
 import PatientDashboard from './modules/patient/components/PatientDashboard'
 import DoctorsList from './modules/patient/components/DoctorsList'
 import Appointments from './modules/patient/components/Appointments'
+import AppointmentStatus from './modules/patient/components/AppointmentStatus'
 import PatientProfile from './modules/patient/components/PatientProfile'
 
 function App() {
@@ -33,17 +37,18 @@ function App() {
           <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<PatientLogin />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/hospital-auth" element={<HospitalAuth />} />
+          <Route path="/patient-portal" element={<PatientPortal />} />
+          <Route path="/hospital-portal" element={<HospitalPortal />} />
           <Route path="/payment" element={<PaymentPage />} />
           
           {/* Admin Module Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/hospitals" element={<HospitalManagement />} />
           <Route path="/admin/hospital-approvals" element={<HospitalApprovals />} />
-          <Route path="/admin/doctors" element={<AdminDashboard />} />
-          <Route path="/admin/patients" element={<AdminDashboard />} />
+          <Route path="/admin/doctors" element={<DoctorManagement />} />
+          <Route path="/admin/patients" element={<PatientManagement />} />
           <Route path="/admin/appointments" element={<AdminDashboard />} />
           <Route path="/admin/analytics" element={<AdminDashboard />} />
           <Route path="/admin/settings" element={<AdminDashboard />} />
@@ -62,18 +67,13 @@ function App() {
           <Route path="/patient" element={<ProtectedRoute userType="patient"><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/find-doctors" element={<ProtectedRoute userType="patient"><DoctorsList /></ProtectedRoute>} />
           <Route path="/patient/appointments" element={<ProtectedRoute userType="patient"><Appointments /></ProtectedRoute>} />
+          <Route path="/patient/appointment-status" element={<ProtectedRoute userType="patient"><AppointmentStatus /></ProtectedRoute>} />
           <Route path="/patient/queue-status" element={<ProtectedRoute userType="patient"><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/medical-records" element={<ProtectedRoute userType="patient"><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/prescriptions" element={<ProtectedRoute userType="patient"><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/billing" element={<ProtectedRoute userType="patient"><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/profile" element={<ProtectedRoute userType="patient"><PatientProfile /></ProtectedRoute>} />
           <Route path="/patient/help" element={<ProtectedRoute userType="patient"><PatientDashboard /></ProtectedRoute>} />
-          
-          {/* Legacy Routes for Backward Compatibility */}
-          <Route path="/patient-login" element={<PatientLogin />} />
-          <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/queue-management" element={<QueueManagement />} />
           </Routes>
         </div>
       </Router>
